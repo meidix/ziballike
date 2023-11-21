@@ -1,5 +1,5 @@
 from pymongo import MongoClient
 
-client = MongoClient("db", 27017)
+client = MongoClient("mongodb://%s:%s@localhost:27017" % ("zibal", "pass123Sec"))
 
 db = client["zibal_db"]
