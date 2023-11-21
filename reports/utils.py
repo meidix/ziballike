@@ -18,3 +18,29 @@ class Response:
 
     def to_json_response(self):
         return HttpResponse(dumps(self.data), content_type="application/json", status=self.status)
+
+
+class PipeLine:
+
+    def __init__(self):
+        self.query_string = []
+
+    def __repr__(self) -> str:
+        self.query_string
+
+    def match(self, expr):
+        self._add_process("$match", expr)
+        return self
+
+    def group(self, expr):
+        self._add_process("$group", expr)
+        return self
+
+    def project(self, expr):
+        self._add_process("$project", expr)
+        return self
+
+    def _add_process(self, process_name, expr):
+        self.query_string.append(
+            {process_name: expr}
+        )
