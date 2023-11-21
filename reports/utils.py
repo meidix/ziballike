@@ -1,5 +1,6 @@
 from django.http import JsonResponse, HttpResponse, HttpRequest
 from bson.json_util import dumps
+from django.db.models import TextChoices
 
 class Request:
     def __init__(self, request: HttpRequest):
@@ -44,3 +45,18 @@ class PipeLine:
         self.query_string.append(
             {process_name: expr}
         )
+
+
+class Jmonths(TextChoices):
+    FARVARDIN = 'فروردین'
+    ORDIBEHESHT = 'اردیبهشت'
+    KHORDAD = 'خرداد'
+    TIR = 'تیر'
+    MORDAD = 'مرداد'
+    SHAHRIVAR = 'شهریور'
+    MEHR = 'مهر'
+    ABAN = 'آبان'
+    AZAR = 'آذر'
+    DEY = 'دی'
+    BAHMAN = 'بهمن'
+    ESFAND = 'اسفند'
