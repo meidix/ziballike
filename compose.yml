@@ -1,0 +1,20 @@
+services:
+  app:
+    container_name: app
+    build: .
+    ports:
+      - 8000:8000
+    restart: always
+    depends_on:
+      - db
+  db:
+    container_name: zibdb
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    restart: always
+    volumes:
+      - ./_db/data/:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=pass123
