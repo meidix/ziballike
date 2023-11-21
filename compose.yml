@@ -16,5 +16,5 @@ services:
     volumes:
       - ./_db/data/:/data/db
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=pass123
+      - MONGO_INITDB_ROOT_USERNAME=zibal
+      - MONGO_INITDB_ROOT_PASSWORD=pass123Sec
