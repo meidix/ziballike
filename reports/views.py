@@ -91,5 +91,44 @@ class ReportAPIView(BaseReportAPIView):
         }).query_string
 
 
-class ReportCacheAPIView(View):
-    pass
+class ReportCacheAPIView(BaseReportAPIView):
+    collection = db.get_collection('transaction_summary')
+
+    def generate_query(self, body):
+        pipe = PipeLine()
+        if 'merchantId' in body:
+            pipe = pipe.match({ '_id.merchantId': ObjectId(body['merchantId'])})
+
+        if body['mode'] == 'monthly':
+            pipe =  pipe.group({
+                '_id': {
+                    'year': '$_id.year',
+                    'month': '$_id.month'
+                },
+                'value': { "$sum": "$monthlyCount" if body['type'] == 'count' else "$monthlyAmount"}
+            })
+
+        elif body['mode'] == 'daily':
+            pipe = pipe.unwind("$weeklySummaries").unwind("$weeklySummaries.dailySummaries").group({
+                '_id': {
+                    'year': "$_id.year",
+                    'month': "$_id.month",
+                    'day': "$weeklySummaries.dailySummaries.day"
+                },
+                'value': { "$sum": f"$weeklySummaries.dailySummaries.{body['type']}" }
+            })
+
+        elif body['mode'] == 'weekly':
+            pipe = pipe.unwind("$weeklySummaries").group({
+                '_id': {
+                    'year': "$_id.year",
+                    'week': "$weeklySummaries.week"
+                },
+                'value' : { "$sum": f"$weeklySummaries.{body['type']}"}
+            })
+
+        return pipe.project({
+            '_id': 0,
+            'key': "$_id",
+            'value': 1
+        }).query_string

@@ -50,6 +50,10 @@ class PipeLine:
         self._add_process('$out', collection_name)
         return self
 
+    def unwind(self, array):
+        self._add_process("$unwind", array)
+        return self
+
 
 class Jmonths(TextChoices):
     FARVARDIN = 'فروردین'
