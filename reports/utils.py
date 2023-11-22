@@ -3,13 +3,20 @@ from bson.json_util import dumps
 from django.db.models import TextChoices
 
 class Request:
-    def __init__(self, request: HttpRequest):
+    def __init__(self, request: HttpRequest, validators=[]):
         self.request = request
-        self.params = eval(request.body.decode("UTF-8"))
+        self._initial_params = eval(request.body.decode("UTF-8"))
+        self.validators = validators
+        self.validate()
 
+    def validate(self):
+        for validator in self.validators:
+            validator(self._initial_params)
+        self.params = self._initial_params
 
     def get_param(self, param_name, default=None):
         return self.params.get(param_name, default)
+
 
 
 class Response:

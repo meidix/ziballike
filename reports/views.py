@@ -1,8 +1,11 @@
 from django.shortcuts import render
 from django.views import View
+from django.core.exceptions import ValidationError
 from .utils import Request, Response, PipeLine, Jmonths
+from .validators import *
 from ziballike import db
 from bson import ObjectId
+from bson.errors import InvalidId
 
 import jdatetime
 from datetime import timedelta, date
@@ -10,14 +13,35 @@ from datetime import timedelta, date
 class BaseReportAPIView(View):
     collection = None
 
-    def get(self, request, *args, **kwargs):
-        req = Request(request)
-        pipeline = self.generate_query(req.params)
-        query = self.collection.aggregate(pipeline)
-        results = [self.transform_key(item, req.params['mode']) for item in query]
-        res = Response(results, 200)
-        return res.to_json_response()
 
+    def get(self, request, *args, **kwargs):
+        try:
+            req = Request(request, [validate_mode, validate_type])
+            pipeline = self.generate_query(req.params)
+            query = self.collection.aggregate(pipeline)
+            results = [self.transform_key(item, req.params['mode']) for item in query]
+            res = Response(results, 200)
+            return res.to_json_response()
+        except ValidationError as err:
+            data = {
+             'type': 'ValidationError',
+             'errorCode': err.code,
+             'errMsg': err.message
+            }
+            res = Response(data, 400)
+            return res.to_json_response()
+        except InvalidId:
+            data = {
+                'type': "Invalid ObjectId"
+            }
+            res = Response(data, 400)
+            return res.to_json_response()
+        except:
+            data = {
+                "error": "An Internal Server Error occured"
+            }
+            res = Response(data, 500)
+            return res.to_json_response()
 
     def generate_query(self, body):
         pass
