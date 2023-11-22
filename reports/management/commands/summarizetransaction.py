@@ -55,7 +55,7 @@ class Command(BaseCommand):
                 'month': '$_id.month',
             },
             'monthlyCount' : { "$sum": "$weeklyCount"},
-            'mountlyAmount': { "$sum": "$weeklyAmount"},
+            'monthlyAmount': { "$sum": "$weeklyAmount"},
             'weeklySummaries': {
                 "$push": {
                     "week": "$_id.week",
