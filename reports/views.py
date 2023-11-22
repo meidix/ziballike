@@ -7,18 +7,20 @@ from bson import ObjectId
 import jdatetime
 from datetime import timedelta, date
 
-class ReportAPIView(View):
+class BaseReportAPIView(View):
+    collection = None
 
     def get(self, request, *args, **kwargs):
         req = Request(request)
         pipeline = self.generate_query(req.params)
-        transactions = db.get_collection('transaction')
-        query = transactions.aggregate(pipeline)
-        results = []
-        for item in query:
-            results.append(self.transform_key(item, req.params['mode']))
-        res = Response(results)
+        query = self.collection.aggregate(pipeline)
+        results = [self.transform_key(item, req.params['mode']) for item in query]
+        res = Response(results, 200)
         return res.to_json_response()
+
+
+    def generate_query(self, body):
+        pass
 
     def transform_key(self, item, mode):
         key = item['key']
@@ -41,6 +43,10 @@ class ReportAPIView(View):
             })
             return item
 
+
+class ReportAPIView(BaseReportAPIView):
+
+    collection = db.get_collection('transaction')
 
     def generate_query(self, body):
         pipe = PipeLine()
@@ -83,3 +89,7 @@ class ReportAPIView(View):
             'key': "$_id",
             'value': "$count"
         }).query_string
+
+
+class ReportCacheAPIView(View):
+    pass
