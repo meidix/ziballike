@@ -46,6 +46,10 @@ class PipeLine:
             {process_name: expr}
         )
 
+    def out(self, collection_name):
+        self._add_process('$out', collection_name)
+        return self
+
 
 class Jmonths(TextChoices):
     FARVARDIN = 'فروردین'
