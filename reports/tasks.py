@@ -1,22 +1,30 @@
 from ziballike import db
 from .utils import PipeLine
 from bson import ObjectId
-from bson.json_utils import dumps
+from bson.json_util import dumps
+from celery import shared_task
 from django.utils import timezone
 from datetime import datetime, timedelta
-from django.conf import setting
+from django.conf import settings
 import jdatetime
 import requests
+import json
 
 def summarize_and_notify():
     transaction = db.get_collection('transaction')
-    merchants = transaction.distict("merchantId")
+    merchants = transaction.find().distinct("merchantId")
     yesterday = timezone.now().date() - timedelta(days=1)
 
     for merchant in merchants:
-        query =get_query(merchant, yesterday)
-        result = transaction.aggregate(query)
-        send_notification(merchant, result, yesterday)
+        summarize_and_notify_merchant.delay(merchant.binary, yesterday)
+
+
+@shared_task
+def summarize_and_notify_merchant(merchant, day):
+    collection = db.get_collection('transaction')
+    query =get_query(merchant, day)
+    result = collection.aggregate(query)
+    send_notification(merchant, result, day)
 
 
 def get_query(merchantId, date):
@@ -57,18 +65,19 @@ def send_notification(merchant, result, date):
             'messege': serialized
         }
     }
-    url = settings.get('NOTIFICATION_SERVICE_URL')
+    url = settings.NOTIFICATION_SERVICE_URL
     perform_request(url, payload)
 
     payload['medium'] = 'email'
-    payload['payload']['subject'] = f'transactions of {jdatetime.date.fromgregorian(date)}'
+    payload['payload']['subject'] = f'transactions of {jdatetime.date.fromgregorian(date=date)}'
     perform_request(url, payload)
 
 
 def perform_request(url, payload):
+    post_data = json.dumps(payload, ensure_ascii=False).encode('utf-8')
     response = requests.post(
         url,
-        payload,
-        headers={'Content-Type': "application/json"})
+        data=post_data,
+        headers={'Content-Type': "application/json; charset=utf-8"})
     if response.status_code != 200:
         raise Exception("An error occured")

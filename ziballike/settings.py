@@ -139,4 +139,4 @@ CELERY_MONGODB_BACKEND_SETTINGS = {
 
 }
 
-NOTIFICATION_SERVICE_URL = "http://notification_service:8000/"
+NOTIFICATION_SERVICE_URL = "http://notification-service:8000/"
