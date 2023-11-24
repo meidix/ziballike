@@ -16,7 +16,7 @@ def summarize_and_notify():
     yesterday = timezone.now().date() - timedelta(days=1)
 
     for merchant in merchants:
-        summarize_and_notify_merchant.delay(merchant.binary, yesterday)
+        summarize_and_notify_merchant.delay(str(merchant), yesterday)
 
 
 @shared_task

@@ -20,6 +20,11 @@ app.conf.beat_schedule = {
     }
 }
 
+app.conf.task_routes = {
+    'reports.tasks.summarize_and_notify': { 'queue': 'reports_queue'},
+    'reports.tasks.summarize_and_notify_merchant': { 'queue': 'reports_queue'},
+}
+
 
 @app.task(bind=True, ignore_result=True)
 def debug_task(self):
